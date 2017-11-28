@@ -1,0 +1,18 @@
+//Wrote this for computing the ALU
+
+/**
+ * Negates one 16-bit value.
+ */
+
+CHIP Negate16 {
+    IN in[16];
+    OUT out[16];
+
+    PARTS:
+    //Key insight is that Not16 lets you flip bits and gives you the complement 
+    //due to nice property of 2's complement!
+
+    Not16(in=in, out=almostThere);
+    Add16(a[1..14]=false, a[0]=true, b=almostThere, out=out);
+
+}
