@@ -13,66 +13,40 @@
 CHIP RAM64 {
     IN in[16], load, address[6];
     OUT out[16];
-
-    And(a=in[15], b=in[14], out=greaterThan48);
-    And(a=greaterThan48, b=in[13], out=RAM8Sel);
     
-    Not(in=in[13], out=notIn13);
-    And(a=greaterThan48, b=notIn13, out=Ram7Sel);
-
-    And(a=in[15], b=[13], out=greaterThan40);
-    Not(in=in[14], out=notIn14);
-    And(a=greaterThan40, b=notIn14, out=Ram6Sel);
-
-    And(a=in[15], b=notIn14, out=greaterThan32);
-    And(a=greaterThan32, b=notin13, out=Ram5Sel);
-    Not(in=in[15], out=notIn15);
+    PARTS:  
     
-    And(a=in[14], b=[13], out=greaterThan24);
-    And(a=notIn15, b=greaterThan24, out=Ram4Sel);
-
-    And(a=in[14], b=notIn13, out=greaterThan16);
-    And(a=notIn15, b=greaterThan16, out=Ram3Sel);
-
-    And(a=in[13], b=notIn14, out=greaterThan8);
-    And(a=notIn15, b=greaterThan8, out=Ram2Sel);
-
-    And(a=in[13], b=notIn14, out=greaterThan8);
-    And(a=notIn15, b=greaterThan8, out=Ram2Sel);
-
-    And(a=notIn13, b=notIn14, out=greaterThan0);
-    And(a=notIn15, b=greaterThan0, out=Ram1Sel);
-
     DMux8Way(
       in=true,
-      sel=address,
-      a=a,
-      b=b,
-      c=c,
-      d=d,
-      e=e,
-      f=f,
-      g=g,
-      h=h
+      sel=address[0..2],
+      a=Ram1Sel,
+      b=Ram2Sel,
+      c=Ram3Sel,
+      d=Ram4Sel,
+      e=Ram5Sel,
+      f=Ram6Sel,
+      g=Ram7Sel,
+      h=Ram8Sel
     );
     
-    And(a=a, b=load, out=loadA);
-    And(a=b, b=load, out=loadB);
-    And(a=c, b=load, out=loadC);
-    And(a=d, b=load, out=loadD);
-    And(a=e, b=load, out=loadE);
-    And(a=f, b=load, out=loadF);
-    And(a=g, b=load, out=loadG);
-    And(a=h, b=load, out=loadH);
-
-    RAM8( in=RAM1in, load=load, address=address, out=Ram1out);
-    RAM8( in=RAM2in, load=load, address=address, out=Ram2out);
-    RAM8( in=RAM3in, load=load, address=address, out=Ram3out);
-    RAM8( in=RAM4in, load=load, address=address, out=Ram4out);
-    RAM8( in=RAM5in, load=load, address=address, out=Ram5out);
-    RAM8( in=RAM6in, load=load, address=address, out=Ram6out);
-    RAM8( in=RAM7in, load=load, address=address, out=Ram7out);
-    RAM8( in=RAM8in, load=load, address=address, out=Ram8out);
+    And(a=Ram1Sel, b=load, out=loadA);
+    And(a=Ram2Sel, b=load, out=loadB);
+    And(a=Ram3Sel, b=load, out=loadC);
+    And(a=Ram4Sel, b=load, out=loadD);
+    And(a=Ram5Sel, b=load, out=loadE);
+    And(a=Ram6Sel, b=load, out=loadF);
+    And(a=Ram7Sel, b=load, out=loadG);
+    And(a=Ram8Sel, b=load, out=loadH);
+    
+    Mux16(a=false, b=in, sel=load, out=outtie);
+    RAM8( in=outtie, load=loadA, address=address[3..5], out=Ram1out);
+    RAM8( in=outtie, load=loadB, address=address[3..5], out=Ram2out);
+    RAM8( in=outtie, load=loadC, address=address[3..5], out=Ram3out);
+    RAM8( in=outtie, load=loadD, address=address[3..5], out=Ram4out);
+    RAM8( in=outtie, load=loadE, address=address[3..5], out=Ram5out);
+    RAM8( in=outtie, load=loadF, address=address[3..5], out=Ram6out);
+    RAM8( in=outtie, load=loadG, address=address[3..5], out=Ram7out);
+    RAM8( in=outtie, load=loadH, address=address[3..5], out=Ram8out);
 
     Mux8Way16(
       a=Ram1out,
@@ -83,7 +57,7 @@ CHIP RAM64 {
       f=Ram6out,
       g=Ram7out,
       h=Ram8out,
-      sel=address,
+      sel=address[0..2],
       out=out
     );
 }

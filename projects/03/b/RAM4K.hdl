@@ -15,5 +15,49 @@ CHIP RAM4K {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    DMux8Way(
+      in=true,
+      sel=address[0..2],
+      a=Ram1Sel,
+      b=Ram2Sel,
+      c=Ram3Sel,
+      d=Ram4Sel,
+      e=Ram5Sel,
+      f=Ram6Sel,
+      g=Ram7Sel,
+      h=Ram8Sel
+    );
+    
+    And(a=Ram1Sel, b=load, out=loadA);
+    And(a=Ram2Sel, b=load, out=loadB);
+    And(a=Ram3Sel, b=load, out=loadC);
+    And(a=Ram4Sel, b=load, out=loadD);
+    And(a=Ram5Sel, b=load, out=loadE);
+    And(a=Ram6Sel, b=load, out=loadF);
+    And(a=Ram7Sel, b=load, out=loadG);
+    And(a=Ram8Sel, b=load, out=loadH);
+    
+    Mux16(a=false, b=in, sel=load, out=outtie);
+    RAM512( in=outtie, load=loadA, address=address[3..11], out=Ram1out);
+    RAM512( in=outtie, load=loadB, address=address[3..11], out=Ram2out);
+    RAM512( in=outtie, load=loadC, address=address[3..11], out=Ram3out);
+    RAM512( in=outtie, load=loadD, address=address[3..11], out=Ram4out);
+    RAM512( in=outtie, load=loadE, address=address[3..11], out=Ram5out);
+    RAM512( in=outtie, load=loadF, address=address[3..11], out=Ram6out);
+    RAM512( in=outtie, load=loadG, address=address[3..11], out=Ram7out);
+    RAM512( in=outtie, load=loadH, address=address[3..11], out=Ram8out);
+
+    Mux8Way16(
+      a=Ram1out,
+      b=Ram2out,
+      c=Ram3out,
+      d=Ram4out,
+      e=Ram5out,
+      f=Ram6out,
+      g=Ram7out,
+      h=Ram8out,
+      sel=address[0..2],
+      out=out
+    );
+
 }
