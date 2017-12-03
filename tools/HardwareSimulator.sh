@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-
+echo "Starting!"
 # $Id: HardwareSimulator.sh,v 1.1 2014/06/17 21:14:01 marka Exp $
 # mark.armbrust@pobox.com
 
