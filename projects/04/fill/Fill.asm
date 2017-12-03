@@ -23,31 +23,44 @@
   M=D
 
   @KeyboardInput //A Register is pointing at 24576? and M[24576] is the keyboard
-  D=M  //HackKeyboard single-world key map RAM[24576]
+  A=M  //HackKeyboard single-world key map RAM[24576]
+  D=M //I think M is now point at the keyboard status
 
-  @66 //just go to the end of the loop for now  
-  D; JEQ //equal 0 skip filling //with black characters?
+  @29  //skip filling
+  D; JEQ
 
-  @StartingPoint
+  @StartingPoint //D=16384
   D=M
 
-  @i  //storing 24576 in the i variable?
-  M=D 
+  @i  //A=16384 and M[16384] = -1
+  A=D
+  M=-1
 
   @i
-  M=M+16
+  D=A
+
+  @StartingPoint
+  M=M+1
+  D=M
+
+  @24576
+  D=A-D  //calculate D-16384
+ 
+
+ //iffy statement checking iterator starts here
+  @29  //if we are done looping ie i =24576ish go terminate
+  D;JLE
+
+  @13     //Not done looping? 
+  D; JGT   //Correct this JMP
   
-  @i
-  D=M-16896
-
-  @47 // done looping
-  D;JGE
-
-  @KeyboardInput
-  M=D
-
-  @47
-  D;JNE
-
-  @11
+  //ends iffy
+  @4  //go back to checking keyboard input 
   0;JMP //go back to beginning for infinite loop
+
+  (CheckKeyboardInput)
+
+
+  (DoINeedToFill)
+
+  (FillinStuff)
