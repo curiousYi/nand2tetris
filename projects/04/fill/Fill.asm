@@ -10,27 +10,38 @@
 // When no key is pressed, the program clears the screen, i.e. writes
 // "white" in every pixel;
 // the screen should remain fully clear as long as no key is pressed.
+ 
+  @123
+  @ColorSelected  //flag to indicate what we are filling with
+  M=-1  //initially screen's white so the answer is yes
   
-  @16384 //initializing iterator
-  D=A //beginning of the Hack Computer Screen
-
-  @StartingPoint  //M[StartingPoint] = 16384 at this pt
-  M=D
-
-  @24576  //D Register =24576
-  D=A
-
-  @ColorBlack  //flag to indicate what we are filling with
-  M=1  //initially screen's white so the answer is yes
-
+  @222
   @IsScreenBlack //indicating what the screen is filled with
   M=0  //initiall the screen is blank so it's false
 
-  @CHECKKEYBOARDINPUT //Output is D which will contain the keyboard input
- 
-  @SHOULDWEFILL
+  
+  @RESETITERATOR 
+    0; JMP 
+  
+  (RESETITERATOR)
+    @333 //initializing iterator USING magic constants to help me trouble shoot the machine code
+    @16384
+    D=A //beginning of the Hack Computer Screen
 
-    
+    @StartingPoint  //M[StartingPoint] = 16384 at this pt
+    M=D
+
+    @INITIALIZECONSTANTS
+    0; JMP
+  
+  (INITIALIZECONSTANTS)
+    @24576  //D Register=24576
+      D=A
+
+    @CHECKKEYBOARDINPUT
+      0; JMP
+   
+   @423
   (CHECKKEYBOARDINPUT)
     @KeyboardInput //M[KeyboardInput] = 24576
     M=D
@@ -39,73 +50,86 @@
     A=M  //HackKeyboard single-world key map RAM[24576]
     D=M //I think M is now point at the keyboard status
     
-    //loaded the keyboard input time to see if we should fill
-    @SHOULDWEFILL
-    0;JMP
+    @SelectBlack
+      D; JNE
+
+    @SelectWhite
+      D; JEQ
+
+    (SelectBlack)
+      @ColorSelected
+      M=-1
+      @SHOULDWEFILL
+      0;JMP
+
+    (SelectWhite)
+      @ColorSelected
+      M=0
+      @SHOULDWEFILL
+      0;JMP
     
   (SHOULDWEFILL)
-    @IsScreenBlack //if the status flag for fill differs from the keyboard input then we should fill 
-    D=D-M  //D contains keyboard input at this point since it is downstream of keyboardinput
+    //Loaded D input from keyboard 
+    @6666
     @FILLSCREEN
-    D; JNE
-    @DONTFILLSCREEN
-    D; JEQ
-
+    0; JMP //just fill the screen for now
+    //TO-DO make it optional to fill the screen otherwise you have situations where you do unnecessary work
+    
   (FILLSCREEN)
-    
-    //at this point we know we need to fill
-    @IsScreenBlack
-    D=M
-
-    @FILLWITHBLACK
-    D; JGT
-    @FILLWITHWHITE
-    D; JEQ
-
-  (FILLWITHBLACK)
-    @1
-    D=A
-    
-    @filler
-    M=-1
-
+    //D should have keyboard input and it SHOULD be accurate 
     @FILLINGLOOP
     0;JMP
-  
-  (FILLWITHWHITE)
-    @0
-    D=A
-    
-    @filler
-    M=0
-
-    @FILLINGLOOP
-    0;JMP
-
+    @666
   (FILLINGLOOP)
-    
-    @StartingPoint //D=16384
+    @ColorSelected
     D=M
 
-    A=D
-    M=-1
-    
-    @StartingPoint
-    M=M+1
-    D=M
+    //you are coloring the blocks black so D = -1
+    @ColorABlockBlack
+    D ; JLT
 
-    @24576
-    D=A-D  //calculate D-16384
+    @ColorABlockWhite
+    D ; JEQ
 
-   //iffy statement checking iterator starts here
-    @DONTFILLSCREEEN  //if we are done looping ie i =24576ish go terminate
-    D;JLE
+    (ColorABlockBlack)
+      
+      @StartingPoint //D=16384
+      D=M
 
-    @FILLINGLOOP     //Not done looping? 
-    D; JGT   //Correct this JMP
+      A=D
+      M=-1
 
-  (DONTFILLSCREEN) 
+      @ResumeRestOfFill
+      0; JMP
+
+    (ColorABlockWhite)
+      
+      @StartingPoint //D=16384
+      D=M
+
+      A=D
+      M=0
+
+      @ResumeRestOfFill
+      0; JMP
+
+      
+   (ResumeRestOfFill)  
+      @StartingPoint
+      M=M+1
+      D=M
+
+      @24576
+      D=D-A  //calculate D-16384
+
+      @11111
+      @DONEFILLING //if we are done looping ie i =24576ish go terminate
+      D;JGE
+
+      @FILLINGLOOP     //Not done looping? 
+      D; JLT   //Correct this JMP
+
+  (DONEFILLING) 
     //ends iffy
-    @4  //go back to checking keyboard input 
-    0;JMP //go back to beginning for infinite loop
-
+    @RESETITERATOR
+    0;JMP
