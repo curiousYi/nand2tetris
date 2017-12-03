@@ -13,35 +13,34 @@
   @16384 //initializing iterator?
   D=A //beginning of the Hack Computer Screen
 
-  @StartingPoint
-  M=D;
+  @StartingPoint  //M[StartingPoint] = 16384 at this pt
+  M=D
 
-  @24576
+  @24576  //D Register =24576
   D=A
 
-  @KeyboardInput
-  M=D  //HackKeyboard single-world key map RAM[24576]
+  @KeyboardInput //M[KeyboardInput] = 24576
+  M=D
 
-  @KeyboardInput
+  @KeyboardInput //A Register is pointing at 24576? and M[24576] is the keyboard
+  D=M  //HackKeyboard single-world key map RAM[24576]
+
+  @66 //just go to the end of the loop for now  
+  D; JEQ //equal 0 skip filling //with black characters?
+
+  @StartingPoint
   D=M
 
-  @2 //just go to the end of the loop for now  
-  @KeyboardInput; JEQ //equal 0 skip filling //with black characters?
-
-  @startingPoint
-  D=M
-
-  @i
-  A=D+M
-  M=-1
+  @i  //storing 24576 in the i variable?
+  M=D 
 
   @i
   M=M+16
-
+  
   @i
   D=M-16896
 
-  @25 // done looping
+  @47 // done looping
   D;JGE
 
   @KeyboardInput
