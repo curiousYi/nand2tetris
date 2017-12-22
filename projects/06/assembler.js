@@ -8,10 +8,15 @@ const filePath =  path.join(__dirname, process.argv[2]);
 
 fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data){
     if (!err) {
-        console.log('received data: ' + data);
+        //console.log('received data: ' + data);
         const parser = new Parser(data);
+        //set-up symbol stuff first
+        
+        for(var i=0; i<10;i++){
+          parser.advance();
+        }
+        console.log(parser.translation);
     } else {
-        console.log(err);
     }
 });
 

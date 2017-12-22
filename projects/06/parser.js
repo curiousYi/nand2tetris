@@ -1,55 +1,17 @@
+const code = require('./code');
+
 class Parser {
   constructor(input){
-    this.once= 0;
     this._input = input; //don't mess with this
     this._formattedSplitLines= this._input.split("\n").map((line) => { return line.slice(0,line.length-1).trim() }); 
     this.commands = this._formattedSplitLines.filter( (line) => {
       return line.length > 0 && (line.substring(0,2) !== "//")
     });
-    this.currentAddress = 0; //where I am at in the address;
-
-    this._compDictionary = {
-      '0': '0101010',
-      '1': '0111111',
-      '-1': '0111010',
-      'D': '0001100',
-      'A': '0110000',
-      '!D': '0001101',
-      '!A': '0110001',
-      'D+1': '0011111',
-      'A+1': '0110111',
-      'D-1': '0001110',
-      'A-1': '0110010',
-      'D+A': '0000010',
-      'D-A': '0010011',
-      'A-D': '0000111',
-      'D&A': '0000000',
-      'D|A': '0010101',
-      'M': '1110000',
-      '!M': '1110001',
-      'M+1':'1110111',
-      'M-1': '1110010',
-      'D+M': '1000010',
-      'D-A': '1010011',
-      'M-D': '1000111', 
-      'D&M': '1000000',
-      'D|M': '1010101'
-    };
-
-    this._destDictionary = {
-      'null': '000',
-      'M': '001',
-      'D': '010',
-      'MD': '011',
-      'A': '100',
-      'AM': '101',
-      'AD': '110',
-      'AMD': '111'
-    }
-
-    this._jumpDictionary = {
-
-    }
+    
+    this._compDictionary = code.compDictionary; 
+    this._destDictionary = code.destDictionary;
+    this._jumpDictionary = code.jumpDictionary; 
+    this.translation="";
   }
 
   hasMoreCommands() {
@@ -58,15 +20,40 @@ class Parser {
 
   advance(){
     if(this.hasMoreCommands()){
-      console.log('we advanced!');
-      this.currentAddress++;
+      let currentInstr = this.commands.shift();
+
+      let type = this.commandType(currentInstr);
+      if(type==='A_COMMAND'){
+        if('0123456789'.indexOf(currentInstr[1])!== -1){
+          let numb = Number(currentInstr.substring(1));
+          if(numb.toString() !== "NaN"){
+            this.translation += this.convertTo16Bit(numb);
+          }
+          else{
+            //symbol stuff here
+          }
+        }
+      }
+      else if(type==='C_COMMAND'){
+        this.parseCInstruction(currentInstr);
+        this.translation += '111'
+        this.translation += this.comp();
+        this.translation += this.dest();
+        this.translation += this.jump();
+      }
+      else{
+        console.log('TO DO L COMMAND'); 
+      }
+
+      this.translation += "\n";
+    }
+    else{
+      return this.translation;
     }
   }
 
-  commandType(){
+  commandType(currentCommand){
     //return command type of current command
-    const currentCommand = this.commands[this.currentAddress];
-    
     if(currentCommand[0] === '@'){
       return 'A_COMMAND';
     }
@@ -89,35 +76,15 @@ class Parser {
   }
 
   dest(){
-    if(this.commandType() !== 'C_COMMAND'){
-      throw 'NOT A C_COMMAND; dest() was called in parser';
-    }
-    else{
-     //return dest mnemonic 
-    }
+    return this._destDictionary[this.tempDest];
   }
 
   comp(){
-    if(this.commandType() !== 'C_COMMAND'){
-      throw 'NOT A C_COMMAND; dest() was called in parser';
-    }
-    else{
-     //return dest mnemonic 
-    }
+    return this._compDictionary[this.tempComp];
   }
 
   jump(){
-    if(this.commandType() !== 'C_COMMAND'){
-      throw 'NOT A C_COMMAND; dest() was called in parser';
-    }
-    else{
-     //return dest mnemonic 
-    }if(this.commandType() !== 'C_COMMAND'){
-      throw 'NOT A C_COMMAND; dest() was called in parser';
-    }
-    else{
-     //return dest mnemonic 
-    }
+    return this._jumpDictionary[this.tempJump];
   }
 
   convertTo16Bit(numb){
@@ -129,22 +96,23 @@ class Parser {
     return firstHalfArray.join("") + numberLastHalf;
   }
 
-  parseCInstruction(){
-    const cInstruction = this.commands[this.currentAddress];
-    eqlLoc = cInstruction.indexOf('=');
-    compEndPt = cInstruction.indexOf(';');
+  parseCInstruction(currentCommand){
+    const cInstruction = currentCommand;
+    let eqLoc = cInstruction.indexOf('=');
+    let compEndPt = cInstruction.indexOf(';');
     
-    const dest = cInstruction.substring(0,eqlLoc);
-    const comp = cInstruction.substring(eqLoc+1, compEndPt);
-    const jump = cInstruction.substring(compEndPt+1);
-    
-    console.log('parseCInstruction ran ', cInstruction, ' ',dest, ' ',comp, ' ', jump);
+    this.tempDest = cInstruction.substring(0,eqLoc);
+    this.tempJump="null";
+    if(compEndPt !== -1){
+      tempJump = cInstruction.substring(compEndPt+1);
+      this.tempComp = cInstruction.substring(eqLoc+1, compEndPt);
+    }
+    else{
+      this.tempComp = cInstruction.substring(eqLoc+1);
+    }
+    console.log('parseCInstruction ran ', cInstruction, ' ', this.tempDest, ' ',this.tempComp, ' ', this.tempJump);
+  }
 
-    return {
-            dest: dest,
-            comp: comp,
-            jump: jump
-            };
-  },
 }
+
 module.exports = Parser;
