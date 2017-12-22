@@ -1,4 +1,5 @@
 const code = require('./code');
+const SymbolTable = require('./symbolTable');
 
 class Parser {
   constructor(input){
@@ -12,6 +13,40 @@ class Parser {
     this._destDictionary = code.destDictionary;
     this._jumpDictionary = code.jumpDictionary; 
     this.translation="";
+  }
+
+  initializeSymbolTableWithLabels() {
+    this._symbolTable = new SymbolTable();
+    let counter = 0; 
+    this.commands.forEach((command) => {
+      if(this.commandType(command) === 'L_COMMAND'){
+        console.log('L COMMAND DETECTED');
+        let symbol = command.substring(1, command.length),
+        address = this.convertTo16Bit(counter);
+        console.log('address for L ', symbol, address);
+        this._symbolTable.addEntry(symbol, address);
+        counter--;
+      }
+      counter++;
+    });
+  }
+
+  initializeSymbolTableWithASymbols() {
+    this._symbolTable = new SymbolTable();
+    let counter = 0; 
+    this.commands.forEach((command) => {
+      if(this.commandType((command) ==='A_COMMAND')){
+        if('0123456789'.indexOf(command[1])!== -1){
+          
+        }else{
+          let memAddress = this.convertTo16Bit(this._symbolTable.freeAddress);
+          this._symbolTable.addEntry(command.substring(1), memAddress);
+          this.freeAddress++
+        }
+
+      }
+      counter++;
+    });
   }
 
   hasMoreCommands() {
@@ -30,8 +65,10 @@ class Parser {
             this.translation += this.convertTo16Bit(numb);
           }
           else{
-            //symbol stuff here
+            //if for some reason I have @1dslkfjadfkl this would be error catch
           }
+        }else{
+          this.translation += this._symbolTable.getAddress(currentInstr.substring(1));
         }
       }
       else if(type==='C_COMMAND'){
@@ -42,7 +79,10 @@ class Parser {
         this.translation += this.jump();
       }
       else{
-        console.log('TO DO L COMMAND'); 
+        //at this point symbol table is initialized so should be good
+        //console.log('TO DO L COMMAND'); 
+        //convert to a memory address here?
+        //at this point L label defined so we can skip it
       }
 
       this.translation += "\n";
@@ -104,13 +144,13 @@ class Parser {
     this.tempDest = cInstruction.substring(0,eqLoc);
     this.tempJump="null";
     if(compEndPt !== -1){
-      tempJump = cInstruction.substring(compEndPt+1);
+      this.tempJump = cInstruction.substring(compEndPt+1);
       this.tempComp = cInstruction.substring(eqLoc+1, compEndPt);
     }
     else{
       this.tempComp = cInstruction.substring(eqLoc+1);
     }
-    console.log('parseCInstruction ran ', cInstruction, ' ', this.tempDest, ' ',this.tempComp, ' ', this.tempJump);
+    //console.log('parseCInstruction ran ', cInstruction, ' ', this.tempDest, ' ',this.tempComp, ' ', this.tempJump);
   }
 
 }

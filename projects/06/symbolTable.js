@@ -9,6 +9,7 @@ class SymbolTable {
       'SCREEN': '0100000000000000',
       'KBD': '0110000000000000'
     }
+    this.freeAddress=16;
 
     for(var i=0; i<=15; i++){
       let label = `R${i}`;
@@ -19,7 +20,7 @@ class SymbolTable {
   addEntry(symbol, address){
     if(!this.contains(symbol)){
       this._table[symbol]=address;
-    }
+      }
   }
 
   contains(symbol){
@@ -27,7 +28,7 @@ class SymbolTable {
   }
 
   getAddress(symbol){
-    return this._table(symbol);
+    return this._table[symbol];
   }
 
   convertTo16Bit(numb){
@@ -39,3 +40,5 @@ class SymbolTable {
     return firstHalfArray.join("") + numberLastHalf;
   }
 }
+
+module.exports = SymbolTable;

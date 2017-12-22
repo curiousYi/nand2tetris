@@ -11,7 +11,8 @@ fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data){
         //console.log('received data: ' + data);
         const parser = new Parser(data);
         //set-up symbol stuff first
-        
+        parser.initializeSymbolTableWithLabels(); 
+        parser.initializeSymbolTableWithASymbols(); 
         for(var i=0; i<10;i++){
           parser.advance();
         }
