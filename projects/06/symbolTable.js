@@ -20,7 +20,9 @@ class SymbolTable {
   addEntry(symbol, address){
     if(!this.contains(symbol)){
       this._table[symbol]=address;
-      }
+    }
+    else{
+    }
   }
 
   contains(symbol){

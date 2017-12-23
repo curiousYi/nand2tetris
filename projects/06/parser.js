@@ -3,8 +3,9 @@ const SymbolTable = require('./symbolTable');
 
 class Parser {
   constructor(input){
-    this._input = input; //don't mess with this
-    this._formattedSplitLines= this._input.split("\n").map((line) => { return line.slice(0,line.length-1).trim() }); 
+    //removing new lines and white spaces 
+    this._formattedSplitLines= input.split("\n").map((line) => { return line.slice(0,line.length-1).trim() }); 
+    //removing comments lines
     this.commands = this._formattedSplitLines.filter( (line) => {
       return line.length > 0 && (line.substring(0,2) !== "//")
     });
@@ -12,36 +13,40 @@ class Parser {
     this._compDictionary = code.compDictionary; 
     this._destDictionary = code.destDictionary;
     this._jumpDictionary = code.jumpDictionary; 
+    this._symbolTable = new SymbolTable();
     this.translation="";
   }
 
   initializeSymbolTableWithLabels() {
-    this._symbolTable = new SymbolTable();
     let counter = 0; 
     this.commands.forEach((command) => {
       if(this.commandType(command) === 'L_COMMAND'){
-        console.log('L COMMAND DETECTED');
-        let symbol = command.substring(1, command.length),
+        let symbol = command.substring(1, command.length-1),
         address = this.convertTo16Bit(counter);
-        console.log('address for L ', symbol, address);
-        this._symbolTable.addEntry(symbol, address);
-        counter--;
+        if(!this._symbolTable.contains(symbol)){
+          this._symbolTable.addEntry(symbol, address);
+          counter--;
+        }
       }
       counter++;
     });
   }
 
   initializeSymbolTableWithASymbols() {
-    this._symbolTable = new SymbolTable();
     let counter = 0; 
     this.commands.forEach((command) => {
-      if(this.commandType((command) ==='A_COMMAND')){
+      if(this.commandType(command) ==='A_COMMAND'){
         if('0123456789'.indexOf(command[1])!== -1){
           
         }else{
           let memAddress = this.convertTo16Bit(this._symbolTable.freeAddress);
-          this._symbolTable.addEntry(command.substring(1), memAddress);
-          this.freeAddress++
+          let symbol = command.substring(1, command.length); 
+
+          if(!this._symbolTable.contains(symbol)){
+          console.log(`heres the free addres ${this._symbolTable.freeAddress}`);
+          this._symbolTable.addEntry(symbol, memAddress);
+          this._symbolTable.freeAddress++
+          }
         }
 
       }
@@ -70,6 +75,7 @@ class Parser {
         }else{
           this.translation += this._symbolTable.getAddress(currentInstr.substring(1));
         }
+        this.translation += "\n";
       }
       else if(type==='C_COMMAND'){
         this.parseCInstruction(currentInstr);
@@ -77,6 +83,8 @@ class Parser {
         this.translation += this.comp();
         this.translation += this.dest();
         this.translation += this.jump();
+
+        this.translation += "\n";
       }
       else{
         //at this point symbol table is initialized so should be good
@@ -84,11 +92,6 @@ class Parser {
         //convert to a memory address here?
         //at this point L label defined so we can skip it
       }
-
-      this.translation += "\n";
-    }
-    else{
-      return this.translation;
     }
   }
 
@@ -141,16 +144,23 @@ class Parser {
     let eqLoc = cInstruction.indexOf('=');
     let compEndPt = cInstruction.indexOf(';');
     
-    this.tempDest = cInstruction.substring(0,eqLoc);
-    this.tempJump="null";
-    if(compEndPt !== -1){
+    this.tempDest = "null";
+    this.tempJump = "null";
+    
+    if(compEndPt !== -1 && eqLoc !== -1 ){
+      this.tempDest= cInstruction.substring(0, eqLoc);
+      this.tempComp = cInstruction.substring(eqLoc+1,compEndPt);
       this.tempJump = cInstruction.substring(compEndPt+1);
-      this.tempComp = cInstruction.substring(eqLoc+1, compEndPt);
     }
-    else{
+    else if(compEndPt !== -1){
+      this.tempComp = cInstruction.substring(0,compEndPt);
+      this.tempJump = cInstruction.substring(compEndPt+1);
+    }
+    else if(eqLoc !== -1){
+      this.tempDest = cInstruction.substring(0, eqLoc);
       this.tempComp = cInstruction.substring(eqLoc+1);
     }
-    //console.log('parseCInstruction ran ', cInstruction, ' ', this.tempDest, ' ',this.tempComp, ' ', this.tempJump);
+    //console.log(`parse C instruction ran ${cInstruction} tempDest: ${this.tempDest}  tempComp: ${this.tempComp} tempJump ${this.tempJump}`);
   }
 
 }
